@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { getFeedbackMetadata, transformFeedback } from '../api';
 
 const FORMAT_SUGGESTIONS = [
@@ -17,6 +18,8 @@ function Receive() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [senderName, setSenderName] = useState(null);
+  const [recipientName, setRecipientName] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [conversationId, setConversationId] = useState(null);
@@ -28,6 +31,9 @@ function Receive() {
         const metadata = await getFeedbackMetadata(id);
         if (!metadata) {
           setNotFound(true);
+        } else {
+          setSenderName(metadata.senderName);
+          setRecipientName(metadata.recipientName);
         }
       } catch (err) {
         setError(err.message);
@@ -110,9 +116,9 @@ function Receive() {
   return (
     <div className="container">
       <div className="card chat-container">
-        <h1>You Have Feedback</h1>
+        <h1>{recipientName ? `Hi ${recipientName}!` : 'You Have Feedback'}</h1>
         <p className="subtitle">
-          Someone has feedback for you. How would you like to receive it?
+          {senderName || 'Someone'} has feedback for you. How would you like to receive it?
         </p>
 
         {messages.length === 0 && (
@@ -133,7 +139,11 @@ function Receive() {
         <div className="messages">
           {messages.map((msg, i) => (
             <div key={i} className={`message ${msg.role}`}>
-              {msg.content}
+              {msg.role === 'assistant' ? (
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              ) : (
+                msg.content
+              )}
             </div>
           ))}
           {sending && (
