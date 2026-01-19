@@ -25,7 +25,7 @@ export async function saveFeedback(id, rawFeedback, sanitizedFeedback, senderNam
   };
 
   await put(`${FEEDBACK_PREFIX}${id}.json`, JSON.stringify(data), {
-    access: 'public',
+    access: 'private',
     contentType: 'application/json',
     addRandomSuffix: false
   });
@@ -78,7 +78,7 @@ export async function setConversation(key, history) {
   };
 
   await put(`${CONVERSATION_PREFIX}${key}.json`, JSON.stringify(data), {
-    access: 'public',
+    access: 'private',
     contentType: 'application/json',
     addRandomSuffix: false
   });
