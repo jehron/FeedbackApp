@@ -5,7 +5,9 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-const OUTPUT_DIR = join(ROOT, '.vercel', 'output');
+// Vercel runs the build from client/, so .vercel/output must be there
+const CLIENT_DIR = join(ROOT, 'client');
+const OUTPUT_DIR = join(CLIENT_DIR, '.vercel', 'output');
 const STATIC_DIR = join(OUTPUT_DIR, 'static');
 const FUNCTIONS_DIR = join(OUTPUT_DIR, 'functions');
 
