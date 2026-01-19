@@ -20,6 +20,7 @@ function Receive() {
   const [notFound, setNotFound] = useState(false);
   const [senderName, setSenderName] = useState(null);
   const [recipientName, setRecipientName] = useState(null);
+  const [relationship, setRelationship] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [conversationId, setConversationId] = useState(null);
@@ -34,6 +35,7 @@ function Receive() {
         } else {
           setSenderName(metadata.senderName);
           setRecipientName(metadata.recipientName);
+          setRelationship(metadata.relationship);
         }
       } catch (err) {
         setError(err.message);
@@ -118,7 +120,7 @@ function Receive() {
       <div className="card chat-container">
         <h1>{recipientName ? `Hi ${recipientName}!` : 'You Have Feedback'}</h1>
         <p className="subtitle">
-          {senderName || 'Someone'} has feedback for you. How would you like to receive it?
+          {senderName || 'Someone'}{relationship ? ` (your ${relationship})` : ''} has feedback for you. How would you like to receive it?
         </p>
 
         {messages.length === 0 && (

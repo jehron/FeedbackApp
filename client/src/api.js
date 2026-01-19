@@ -15,11 +15,11 @@ export async function sanitizeFeedback(feedback) {
   return response.json();
 }
 
-export async function saveFeedback(rawFeedback, sanitizedFeedback) {
+export async function saveFeedback(rawFeedback, sanitizedFeedback, senderName, recipientName, relationship) {
   const response = await fetch(`${API_BASE}/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ rawFeedback, sanitizedFeedback })
+    body: JSON.stringify({ rawFeedback, sanitizedFeedback, senderName, recipientName, relationship })
   });
 
   if (!response.ok) {

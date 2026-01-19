@@ -13,7 +13,13 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Feedback not found' });
     }
 
-    res.json({ exists: true, createdAt: metadata.createdAt });
+    res.json({
+      exists: true,
+      createdAt: metadata.createdAt,
+      senderName: metadata.senderName,
+      recipientName: metadata.recipientName,
+      relationship: metadata.relationship
+    });
   } catch (error) {
     console.error('Get metadata error:', error);
     res.status(500).json({ error: 'Failed to get feedback' });

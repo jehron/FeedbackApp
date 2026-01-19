@@ -7,14 +7,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { rawFeedback, sanitizedFeedback } = req.body;
+    const { rawFeedback, sanitizedFeedback, senderName, recipientName, relationship } = req.body;
 
     if (!rawFeedback || !sanitizedFeedback) {
       return res.status(400).json({ error: 'Both raw and sanitized feedback are required' });
     }
 
     const id = nanoid(10);
-    await saveFeedback(id, rawFeedback, sanitizedFeedback);
+    await saveFeedback(id, rawFeedback, sanitizedFeedback, senderName, recipientName, relationship);
 
     res.json({ id });
   } catch (error) {

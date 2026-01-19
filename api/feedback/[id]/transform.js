@@ -30,22 +30,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Format request is required' });
     }
 
-    const sanitized = await getSanitizedFeedback(id);
-    if (!sanitized) {
+    const feedbackData = await getSanitizedFeedback(id);
+    if (!feedbackData) {
       return res.status(404).json({ error: 'Feedback not found' });
     }
+
+    const { sanitizedFeedback, senderName, recipientName, relationship } = feedbackData;
 
     // Get or create conversation history
     let convKey = conversationId || `${id}-${nanoid(6)}`;
     let history = await getConversation(convKey);
 
+    // Build personalized initial message
+    const senderLabel = senderName || 'Someone';
+    const relationshipContext = relationship ? ` (your ${relationship})` : '';
+    const recipientIntro = recipientName ? `Hi ${recipientName}! ` : '';
+    const initialMessage = `${recipientIntro}${senderLabel}${relationshipContext} has feedback they want to share with me. Please help me receive it.\n\nFeedback themes:\n${sanitizedFeedback}\n\n---\n\nMy request: ${format}`;
+
     const messages = [
       ...history,
       {
         role: 'user',
-        content: history.length === 0
-          ? `Here is feedback that someone wants to share with me. Please help me receive it.\n\nFeedback themes:\n${sanitized}\n\n---\n\nMy request: ${format}`
-          : format
+        content: history.length === 0 ? initialMessage : format
       }
     ];
 
@@ -63,9 +69,7 @@ export default async function handler(req, res) {
       ...history,
       {
         role: 'user',
-        content: history.length === 0
-          ? `Here is feedback that someone wants to share with me. Please help me receive it.\n\nFeedback themes:\n${sanitized}\n\n---\n\nMy request: ${format}`
-          : format
+        content: history.length === 0 ? initialMessage : format
       },
       { role: 'assistant', content: response }
     ];

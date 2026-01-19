@@ -4,11 +4,14 @@ import { kv } from '@vercel/kv';
 const FEEDBACK_PREFIX = 'feedback:';
 const CONVERSATION_PREFIX = 'conv:';
 
-export async function saveFeedback(id, rawFeedback, sanitizedFeedback) {
+export async function saveFeedback(id, rawFeedback, sanitizedFeedback, senderName, recipientName, relationship) {
   const data = {
     id,
     rawFeedback,
     sanitizedFeedback,
+    senderName: senderName || null,
+    recipientName: recipientName || null,
+    relationship: relationship || null,
     createdAt: new Date().toISOString()
   };
   // Store feedback with no expiration (persistent)
@@ -18,12 +21,24 @@ export async function saveFeedback(id, rawFeedback, sanitizedFeedback) {
 export async function getFeedbackMetadata(id) {
   const feedback = await kv.get(`${FEEDBACK_PREFIX}${id}`);
   if (!feedback) return null;
-  return { id: feedback.id, createdAt: feedback.createdAt };
+  return {
+    id: feedback.id,
+    createdAt: feedback.createdAt,
+    senderName: feedback.senderName,
+    recipientName: feedback.recipientName,
+    relationship: feedback.relationship
+  };
 }
 
 export async function getSanitizedFeedback(id) {
   const feedback = await kv.get(`${FEEDBACK_PREFIX}${id}`);
-  return feedback?.sanitizedFeedback;
+  if (!feedback) return null;
+  return {
+    sanitizedFeedback: feedback.sanitizedFeedback,
+    senderName: feedback.senderName,
+    recipientName: feedback.recipientName,
+    relationship: feedback.relationship
+  };
 }
 
 export async function getConversation(key) {

@@ -15,15 +15,15 @@ function Preview() {
     return <Navigate to="/" replace />;
   }
 
-  const { rawFeedback, sanitizedFeedback } = location.state;
+  const { rawFeedback, sanitizedFeedback, senderName, recipientName, relationship } = location.state;
 
   const handleConfirm = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const { id } = await saveFeedback(rawFeedback, sanitizedFeedback);
-      navigate(`/share/${id}`);
+      const { id } = await saveFeedback(rawFeedback, sanitizedFeedback, senderName, recipientName, relationship);
+      navigate(`/share/${id}`, { state: { recipientName } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -45,7 +45,10 @@ function Preview() {
       navigate('/preview', {
         state: {
           rawFeedback: editedFeedback,
-          sanitizedFeedback: sanitized
+          sanitizedFeedback: sanitized,
+          senderName,
+          recipientName,
+          relationship
         },
         replace: true
       });

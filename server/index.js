@@ -1,18 +1,21 @@
 import dotenv from 'dotenv';
-import { fileURLToPath as toPath } from 'url';
-import { dirname as dirPath, join as joinPath } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load .env from project root
-dotenv.config({ path: joinPath(dirPath(toPath(import.meta.url)), '../.env') });
+dotenv.config({ path: join(__dirname, '../.env') });
 
 import express from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import feedbackRoutes from './routes/feedback.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import {
+  RATE_LIMIT_WINDOW_MS,
+  SANITIZE_RATE_LIMIT_MAX,
+  TRANSFORM_RATE_LIMIT_MAX
+} from './constants.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -22,15 +25,15 @@ app.use(express.json());
 
 // Rate limiting for transform endpoint (anti-abuse)
 const transformLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30, // 30 requests per window
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: TRANSFORM_RATE_LIMIT_MAX,
   message: { error: 'Too many requests, please try again later' }
 });
 
 // Rate limiting for sanitize endpoint
 const sanitizeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: SANITIZE_RATE_LIMIT_MAX,
   message: { error: 'Too many requests, please try again later' }
 });
 
