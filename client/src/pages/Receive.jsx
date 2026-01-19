@@ -120,7 +120,7 @@ function Receive() {
       <div className="card chat-container">
         <h1>{recipientName ? `Hi ${recipientName}!` : 'You Have Feedback'}</h1>
         <p className="subtitle">
-          {senderName || 'Someone'}{relationship ? ` (your ${relationship})` : ''} has feedback for you. How would you like to receive it?
+          {senderName || 'Someone'} has feedback for you. How would you like to receive it?
         </p>
 
         {messages.length === 0 && (
