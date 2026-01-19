@@ -18,14 +18,18 @@ if (existsSync(OUTPUT_DIR)) {
 mkdirSync(STATIC_DIR, { recursive: true });
 mkdirSync(FUNCTIONS_DIR, { recursive: true });
 
-// Copy static files from dist (root level) to .vercel/output/static
-console.log('Copying static files from dist to .vercel/output/static...');
-const distDir = join(ROOT, 'dist');
+// Try to find the dist folder - could be at root/dist or client/dist
+let distDir = join(ROOT, 'dist');
+if (!existsSync(distDir)) {
+  distDir = join(ROOT, 'client', 'dist');
+}
+
+console.log('Copying static files to .vercel/output/static...');
 if (existsSync(distDir)) {
   cpSync(distDir, STATIC_DIR, { recursive: true });
-  console.log('  Static files copied successfully');
+  console.log(`  Copied from ${distDir}`);
 } else {
-  console.error('ERROR: dist folder not found at', distDir);
+  console.error('ERROR: dist folder not found at root/dist or client/dist');
   process.exit(1);
 }
 
@@ -87,14 +91,10 @@ console.log('Creating .vercel/output/config.json...');
 writeFileSync(join(OUTPUT_DIR, 'config.json'), JSON.stringify({
   version: 3,
   routes: [
-    // Handle API routes first
     { src: '/api/(.*)', dest: '/api/$1' },
-    // Serve static files
     { handle: 'filesystem' },
-    // SPA fallback for all other routes
     { src: '/(.*)', dest: '/index.html' }
   ]
 }, null, 2));
 
 console.log('Build output prepared successfully!');
-console.log(`Output directory: ${OUTPUT_DIR}`);
