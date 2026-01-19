@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd /vercel/path0 && npm run vercel-build",
-  "installCommand": "npm install",
+  "buildCommand": "npm run vercel-build",
   "framework": null
 }
