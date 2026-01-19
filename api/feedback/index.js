@@ -18,7 +18,11 @@ export default async function handler(req, res) {
 
     res.json({ id });
   } catch (error) {
-    console.error('Save error:', error);
-    res.status(500).json({ error: 'Failed to save feedback' });
+    console.error('Save error:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    res.status(500).json({ error: error.message || 'Failed to save feedback' });
   }
 }
