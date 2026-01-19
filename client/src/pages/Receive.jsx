@@ -4,12 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import { getFeedbackMetadata, transformFeedback } from '../api';
 
 const FORMAT_SUGGESTIONS = [
-  'As a haiku',
-  'As a limerick',
+  'Kindly',
+  'Encouragingly',
   'As bullet points',
-  'As a motivational speech',
-  'As a song',
-  'Straight to the point'
+  'Straight to the point',
+  'As a pep talk',
+  'As a haiku'
 ];
 
 function Receive() {
