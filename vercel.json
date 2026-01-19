@@ -1,6 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": ".vercel/output/static",
-  "framework": null
+  "installCommand": "npm install",
+  "buildCommand": "npm run build --workspace=client",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/" }
+  ]
 }
