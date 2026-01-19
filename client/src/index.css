@@ -348,3 +348,240 @@ button.secondary:hover:not(:disabled) {
   border-radius: 8px;
   margin: 1rem 0;
 }
+
+/* Character Counter */
+.char-counter {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.char-counter-bar {
+  flex: 1;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.char-counter-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.2s ease;
+}
+
+.char-counter-text {
+  font-size: 0.75rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.char-counter-text.complete {
+  color: #28a745;
+}
+
+/* SBI Indicator */
+.sbi-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.sbi-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sbi-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sbi-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #999;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sbi-dot.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.sbi-hint {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Quality Analysis Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.quality-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.quality-loading {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.quality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.quality-header h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.quality-score {
+  font-size: 1.5rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+}
+
+.quality-score.score-0 {
+  background: #fee;
+  color: #c00;
+}
+
+.quality-score.score-1 {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.quality-score.score-2 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.quality-score.score-3 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.quality-elements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.quality-element {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #f8f9fa;
+}
+
+.quality-element.present {
+  border-left: 3px solid #28a745;
+}
+
+.quality-element.missing {
+  border-left: 3px solid #dc3545;
+}
+
+.element-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.element-indicator {
+  font-weight: bold;
+}
+
+.element-indicator.present {
+  color: #28a745;
+}
+
+.element-indicator.missing {
+  color: #dc3545;
+}
+
+.element-name {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.element-detail {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+}
+
+.quality-suggestions {
+  background: #f0f4ff;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.quality-suggestions h3 {
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem 0;
+  color: #667eea;
+}
+
+.quality-suggestions ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.quality-suggestions li {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.25rem;
+}
+
+.quality-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.quality-actions button {
+  flex: 1;
+  margin-top: 0;
+}

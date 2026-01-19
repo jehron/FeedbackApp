@@ -3,8 +3,10 @@ import {
   LLM_MODEL,
   SANITIZE_MAX_TOKENS,
   TRANSFORM_MAX_TOKENS,
+  ANALYZE_QUALITY_MAX_TOKENS,
   SANITIZE_SYSTEM_PROMPT,
-  TRANSFORM_SYSTEM_PROMPT
+  TRANSFORM_SYSTEM_PROMPT,
+  ANALYZE_QUALITY_SYSTEM_PROMPT
 } from './constants.js';
 
 // Lazy-initialize to ensure env vars are loaded first
@@ -60,4 +62,35 @@ export async function transformFeedback(sanitizedFeedback, formatRequest, conver
   });
 
   return message.content[0].text;
+}
+
+export async function analyzeFeedbackQuality(rawFeedback) {
+  const message = await getClient().messages.create({
+    model: LLM_MODEL,
+    max_tokens: ANALYZE_QUALITY_MAX_TOKENS,
+    system: ANALYZE_QUALITY_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: 'user',
+        content: `Please analyze the quality of this feedback:\n\n${rawFeedback}`
+      }
+    ]
+  });
+
+  const responseText = message.content[0].text;
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    // If parsing fails, return a default structure
+    return {
+      overallScore: 5,
+      elements: {
+        situation: { present: false, detail: 'Unable to analyze' },
+        behavior: { present: false, detail: 'Unable to analyze' },
+        impact: { present: false, detail: 'Unable to analyze' }
+      },
+      suggestions: ['Try adding more specific details about when and where this occurred.']
+    };
+  }
 }

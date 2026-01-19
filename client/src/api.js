@@ -58,3 +58,18 @@ export async function transformFeedback(id, format, conversationId = null) {
 
   return response.json();
 }
+
+export async function analyzeFeedbackQuality(feedback) {
+  const response = await fetch(`${API_BASE}/feedback/analyze-quality`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ feedback })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to analyze feedback quality');
+  }
+
+  return response.json();
+}

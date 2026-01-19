@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { nanoid } from 'nanoid';
 import { saveFeedback, getFeedbackMetadata, getSanitizedFeedback } from '../db.js';
-import { sanitizeFeedback, transformFeedback } from '../llm.js';
+import { sanitizeFeedback, transformFeedback, analyzeFeedbackQuality } from '../llm.js';
 import {
   FEEDBACK_MAX_LENGTH,
+  FEEDBACK_MIN_LENGTH,
   FEEDBACK_ID_LENGTH,
   CONVERSATION_ID_LENGTH,
   CONVERSATION_TTL_MS,
@@ -34,6 +35,31 @@ router.post('/sanitize', async (req, res) => {
   } catch (error) {
     console.error('Sanitization error:', error);
     res.status(500).json({ error: 'Failed to sanitize feedback' });
+  }
+});
+
+// Analyze feedback quality using SBI framework
+router.post('/analyze-quality', async (req, res) => {
+  try {
+    const { feedback } = req.body;
+
+    if (!feedback || typeof feedback !== 'string' || feedback.trim().length === 0) {
+      return res.status(400).json({ error: 'Feedback is required' });
+    }
+
+    if (feedback.length < FEEDBACK_MIN_LENGTH) {
+      return res.status(400).json({ error: `Feedback must be at least ${FEEDBACK_MIN_LENGTH} characters` });
+    }
+
+    if (feedback.length > FEEDBACK_MAX_LENGTH) {
+      return res.status(400).json({ error: `Feedback is too long (max ${FEEDBACK_MAX_LENGTH} characters)` });
+    }
+
+    const analysis = await analyzeFeedbackQuality(feedback);
+    res.json(analysis);
+  } catch (error) {
+    console.error('Quality analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze feedback quality' });
   }
 });
 

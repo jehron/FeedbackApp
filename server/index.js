@@ -14,7 +14,8 @@ import feedbackRoutes from './routes/feedback.js';
 import {
   RATE_LIMIT_WINDOW_MS,
   SANITIZE_RATE_LIMIT_MAX,
-  TRANSFORM_RATE_LIMIT_MAX
+  TRANSFORM_RATE_LIMIT_MAX,
+  ANALYZE_QUALITY_RATE_LIMIT_MAX
 } from './constants.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,8 +38,16 @@ const sanitizeLimiter = rateLimit({
   message: { error: 'Too many requests, please try again later' }
 });
 
+// Rate limiting for quality analysis endpoint
+const analyzeQualityLimiter = rateLimit({
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: ANALYZE_QUALITY_RATE_LIMIT_MAX,
+  message: { error: 'Too many requests, please try again later' }
+});
+
 // Apply rate limiters
 app.use('/api/feedback/sanitize', sanitizeLimiter);
+app.use('/api/feedback/analyze-quality', analyzeQualityLimiter);
 app.use('/api/feedback/:id/transform', transformLimiter);
 
 // API routes
