@@ -1,8 +1,17 @@
-import { kv } from '@vercel/kv';
+import { put, list, del } from '@vercel/blob';
 
-// Keys are prefixed to avoid collisions
-const FEEDBACK_PREFIX = 'feedback:';
-const CONVERSATION_PREFIX = 'conv:';
+const FEEDBACK_PREFIX = 'feedback/';
+const CONVERSATION_PREFIX = 'conversations/';
+const CONVERSATION_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+async function getBlob(pathname) {
+  const { blobs } = await list({ prefix: pathname, limit: 1 });
+  if (blobs.length === 0) return null;
+
+  const response = await fetch(blobs[0].url);
+  if (!response.ok) return null;
+  return response.json();
+}
 
 export async function saveFeedback(id, rawFeedback, sanitizedFeedback, senderName, recipientName, relationship) {
   const data = {
@@ -14,12 +23,15 @@ export async function saveFeedback(id, rawFeedback, sanitizedFeedback, senderNam
     relationship: relationship || null,
     createdAt: new Date().toISOString()
   };
-  // Store feedback with no expiration (persistent)
-  await kv.set(`${FEEDBACK_PREFIX}${id}`, data);
+
+  await put(`${FEEDBACK_PREFIX}${id}.json`, JSON.stringify(data), {
+    access: 'public',
+    contentType: 'application/json'
+  });
 }
 
 export async function getFeedbackMetadata(id) {
-  const feedback = await kv.get(`${FEEDBACK_PREFIX}${id}`);
+  const feedback = await getBlob(`${FEEDBACK_PREFIX}${id}.json`);
   if (!feedback) return null;
   return {
     id: feedback.id,
@@ -31,7 +43,7 @@ export async function getFeedbackMetadata(id) {
 }
 
 export async function getSanitizedFeedback(id) {
-  const feedback = await kv.get(`${FEEDBACK_PREFIX}${id}`);
+  const feedback = await getBlob(`${FEEDBACK_PREFIX}${id}.json`);
   if (!feedback) return null;
   return {
     sanitizedFeedback: feedback.sanitizedFeedback,
@@ -42,11 +54,30 @@ export async function getSanitizedFeedback(id) {
 }
 
 export async function getConversation(key) {
-  const history = await kv.get(`${CONVERSATION_PREFIX}${key}`);
-  return history || [];
+  const data = await getBlob(`${CONVERSATION_PREFIX}${key}.json`);
+  if (!data) return [];
+
+  // Check if conversation has expired
+  if (data.expiresAt && Date.now() > data.expiresAt) {
+    // Clean up expired conversation
+    const { blobs } = await list({ prefix: `${CONVERSATION_PREFIX}${key}.json`, limit: 1 });
+    if (blobs.length > 0) {
+      await del(blobs[0].url);
+    }
+    return [];
+  }
+
+  return data.history || [];
 }
 
 export async function setConversation(key, history) {
-  // Conversations expire after 1 hour
-  await kv.set(`${CONVERSATION_PREFIX}${key}`, history, { ex: 3600 });
+  const data = {
+    history,
+    expiresAt: Date.now() + CONVERSATION_TTL_MS
+  };
+
+  await put(`${CONVERSATION_PREFIX}${key}.json`, JSON.stringify(data), {
+    access: 'public',
+    contentType: 'application/json'
+  });
 }
