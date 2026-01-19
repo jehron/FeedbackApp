@@ -43,7 +43,11 @@ export default async function handler(req, res) {
 
     res.json({ sanitized: message.content[0].text });
   } catch (error) {
-    console.error('Sanitization error:', error);
-    res.status(500).json({ error: 'Failed to sanitize feedback' });
+    console.error('Sanitization error:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+    res.status(500).json({ error: error.message || 'Failed to sanitize feedback' });
   }
 }
