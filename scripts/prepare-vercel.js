@@ -1,5 +1,5 @@
-import { cpSync, mkdirSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { join, dirname, basename, relative } from 'path';
+import { cpSync, mkdirSync, writeFileSync, readdirSync, statSync, rmSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -9,13 +9,25 @@ const OUTPUT_DIR = join(ROOT, '.vercel', 'output');
 const STATIC_DIR = join(OUTPUT_DIR, 'static');
 const FUNCTIONS_DIR = join(OUTPUT_DIR, 'functions');
 
-// Clean and create output directories
+// Clean output directory
+if (existsSync(OUTPUT_DIR)) {
+  rmSync(OUTPUT_DIR, { recursive: true });
+}
+
+// Create output directories
 mkdirSync(STATIC_DIR, { recursive: true });
 mkdirSync(FUNCTIONS_DIR, { recursive: true });
 
-// Copy static files from client/dist to .vercel/output/static
-console.log('Copying static files...');
-cpSync(join(ROOT, 'client', 'dist'), STATIC_DIR, { recursive: true });
+// Copy static files from dist (root level) to .vercel/output/static
+console.log('Copying static files from dist to .vercel/output/static...');
+const distDir = join(ROOT, 'dist');
+if (existsSync(distDir)) {
+  cpSync(distDir, STATIC_DIR, { recursive: true });
+  console.log('  Static files copied successfully');
+} else {
+  console.error('ERROR: dist folder not found at', distDir);
+  process.exit(1);
+}
 
 // Find all API files and create function bundles
 console.log('Preparing API functions...');
@@ -50,10 +62,8 @@ function processApiDir(dir, basePath = '') {
 
       // Also copy the _storage.js from api root if needed
       const storageFile = join(apiDir, '_storage.js');
-      try {
+      if (existsSync(storageFile)) {
         cpSync(storageFile, join(funcDir, '_storage.js'));
-      } catch (e) {
-        // File might not exist or already copied
       }
 
       // Create .vc-config.json
@@ -73,13 +83,18 @@ function processApiDir(dir, basePath = '') {
 processApiDir(apiDir);
 
 // Create config.json with routes
-console.log('Creating config...');
+console.log('Creating .vercel/output/config.json...');
 writeFileSync(join(OUTPUT_DIR, 'config.json'), JSON.stringify({
   version: 3,
   routes: [
+    // Handle API routes first
+    { src: '/api/(.*)', dest: '/api/$1' },
+    // Serve static files
     { handle: 'filesystem' },
-    { src: '/((?!api/).*)', dest: '/index.html' }
+    // SPA fallback for all other routes
+    { src: '/(.*)', dest: '/index.html' }
   ]
 }, null, 2));
 
 console.log('Build output prepared successfully!');
+console.log(`Output directory: ${OUTPUT_DIR}`);
