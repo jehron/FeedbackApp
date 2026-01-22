@@ -585,3 +585,111 @@ button.secondary:hover:not(:disabled) {
   flex: 1;
   margin-top: 0;
 }
+
+/* Writing Mode Toggle */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  background: transparent;
+  color: #666;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin: 0;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  color: #333;
+}
+
+.mode-btn.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Guided Form */
+.guided-form {
+  margin-bottom: 1rem;
+}
+
+.guided-progress {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.guided-step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.guided-step-dot:hover {
+  background: #d0d0d0;
+}
+
+.guided-step-dot.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.guided-step-dot.completed {
+  background: #28a745;
+  color: white;
+}
+
+.guided-step-dot.completed.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.guided-step {
+  margin-bottom: 1rem;
+}
+
+.guided-step h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #1a1a2e;
+}
+
+.guided-prompt {
+  color: #666;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.guided-step textarea {
+  min-height: 120px;
+}
+
+.guided-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.guided-nav button {
+  flex: 1;
+  margin-top: 0;
+}

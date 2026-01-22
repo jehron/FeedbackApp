@@ -4,8 +4,8 @@ import { sanitizeFeedback, analyzeFeedbackQuality } from '../api';
 
 const FEEDBACK_MIN_LENGTH = 150;
 
-// Client-side SBI pattern detection
-function detectSBIElements(text) {
+// Client-side SBI-R pattern detection
+function detectSBIRElements(text) {
   // Situation patterns: time/place context
   const situationPatterns = [
     /\b(yesterday|today|last week|last month|this morning|during|at the|in the meeting|in our|when we|while)\b/i,
@@ -28,10 +28,18 @@ function detectSBIElements(text) {
     /\b(because of this|as a result|consequently|this meant|the outcome|the effect)\b/i
   ];
 
+  // Request patterns: future behavior change
+  const requestPatterns = [
+    /\b(i'd appreciate|i would appreciate|it would help|could you|would you|i'd like|i would like|in the future|going forward|next time)\b/i,
+    /\b(please consider|please try|i'm asking|my request|what i need|what would help)\b/i,
+    /\b(instead of|rather than|it would be better if|i'd prefer)\b/i
+  ];
+
   return {
     situation: situationPatterns.some(p => p.test(text)),
     behavior: behaviorPatterns.some(p => p.test(text)),
-    impact: impactPatterns.some(p => p.test(text))
+    impact: impactPatterns.some(p => p.test(text)),
+    request: requestPatterns.some(p => p.test(text))
   };
 }
 
@@ -44,22 +52,34 @@ function Home() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Writing mode toggle
+  const [writeMode, setWriteMode] = useState('freeform'); // 'freeform' | 'guided'
+
+  // Guided mode state
+  const [guidedStep, setGuidedStep] = useState(0);
+  const [guidedAnswers, setGuidedAnswers] = useState({
+    situation: '',
+    behavior: '',
+    impact: '',
+    request: ''
+  });
+
   // SBI guidance state
   const [charCount, setCharCount] = useState(0);
-  const [sbiIndicators, setSbiIndicators] = useState({ situation: false, behavior: false, impact: false });
+  const [sbiIndicators, setSbiIndicators] = useState({ situation: false, behavior: false, impact: false, request: false });
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [qualityAnalysis, setQualityAnalysis] = useState(null);
   const [analyzingQuality, setAnalyzingQuality] = useState(false);
   const textareaRef = useRef(null);
   const debounceRef = useRef(null);
 
-  // Debounced SBI detection
+  // Debounced SBI-R detection
   const updateSBIIndicators = useCallback((text) => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
     debounceRef.current = setTimeout(() => {
-      setSbiIndicators(detectSBIElements(text));
+      setSbiIndicators(detectSBIRElements(text));
     }, 300);
   }, []);
 
@@ -72,6 +92,64 @@ function Home() {
     };
   }, []);
 
+  // Guided mode configuration
+  const guidedSteps = [
+    {
+      key: 'situation',
+      title: 'What happened?',
+      prompt: 'Describe the specific context or event',
+      example: 'e.g., "During last Tuesday\'s team standup..." or "In our 1:1 yesterday..."'
+    },
+    {
+      key: 'behavior',
+      title: 'What did they do?',
+      prompt: 'What actions or words did you observe?',
+      example: 'e.g., "You interrupted two people mid-sentence..." or "You took the time to explain..."'
+    },
+    {
+      key: 'impact',
+      title: 'How did it affect things?',
+      prompt: 'What was the result or how did it make you feel?',
+      example: 'e.g., "This made me feel like my input wasn\'t valued..." or "The team felt more confident..."'
+    },
+    {
+      key: 'request',
+      title: 'What would you like them to do differently?',
+      prompt: 'Share a specific request for future behavior (optional but helpful)',
+      example: 'e.g., "In future standups, I\'d appreciate if you could let me finish my thoughts before sharing yours"',
+      optional: true
+    }
+  ];
+
+  const handleGuidedAnswerChange = (key, value) => {
+    setGuidedAnswers(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleGuidedNext = () => {
+    if (guidedStep < guidedSteps.length - 1) {
+      setGuidedStep(guidedStep + 1);
+    }
+  };
+
+  const handleGuidedBack = () => {
+    if (guidedStep > 0) {
+      setGuidedStep(guidedStep - 1);
+    }
+  };
+
+  const combineGuidedFeedback = () => {
+    const { situation, behavior, impact, request } = guidedAnswers;
+    let combined = `${situation.trim()}\n\n${behavior.trim()}\n\n${impact.trim()}`;
+    if (request.trim()) {
+      combined += `\n\n${request.trim()}`;
+    }
+    return combined;
+  };
+
+  const isGuidedComplete = () => {
+    return guidedAnswers.situation.trim() && guidedAnswers.behavior.trim() && guidedAnswers.impact.trim();
+  };
+
   const handleFeedbackChange = (e) => {
     const text = e.target.value;
     setFeedback(text);
@@ -81,16 +159,18 @@ function Home() {
     }
   };
 
-  const proceedToSanitization = async () => {
+  const proceedToSanitization = async (feedbackText) => {
     setShowQualityModal(false);
     setLoading(true);
     setError(null);
 
+    const textToSanitize = feedbackText || (writeMode === 'guided' ? combineGuidedFeedback() : feedback);
+
     try {
-      const { sanitized } = await sanitizeFeedback(feedback);
+      const { sanitized } = await sanitizeFeedback(textToSanitize);
       navigate('/preview', {
         state: {
-          rawFeedback: feedback,
+          rawFeedback: textToSanitize,
           sanitizedFeedback: sanitized,
           senderName: senderName.trim(),
           recipientName: recipientName.trim(),
@@ -111,12 +191,21 @@ function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!feedback.trim() || !senderName.trim() || !recipientName.trim() || !relationship.trim()) return;
+    if (!senderName.trim() || !recipientName.trim() || !relationship.trim()) return;
 
-    // Enforce minimum character count
-    if (charCount < FEEDBACK_MIN_LENGTH) {
-      setError(`Please write at least ${FEEDBACK_MIN_LENGTH} characters (currently ${charCount})`);
-      return;
+    let feedbackText;
+
+    if (writeMode === 'guided') {
+      if (!isGuidedComplete()) return;
+      feedbackText = combineGuidedFeedback();
+    } else {
+      if (!feedback.trim()) return;
+      // Enforce minimum character count for freeform only
+      if (charCount < FEEDBACK_MIN_LENGTH) {
+        setError(`Please write at least ${FEEDBACK_MIN_LENGTH} characters (currently ${charCount})`);
+        return;
+      }
+      feedbackText = feedback;
     }
 
     setError(null);
@@ -124,12 +213,12 @@ function Home() {
     setShowQualityModal(true);
 
     try {
-      const analysis = await analyzeFeedbackQuality(feedback);
+      const analysis = await analyzeFeedbackQuality(feedbackText);
       setQualityAnalysis(analysis);
     } catch (err) {
       // On error, proceed to sanitization anyway
       console.error('Quality analysis failed:', err);
-      proceedToSanitization();
+      proceedToSanitization(feedbackText);
     } finally {
       setAnalyzingQuality(false);
     }
@@ -173,53 +262,137 @@ function Home() {
             disabled={loading}
           />
 
-          <textarea
-            ref={textareaRef}
-            value={feedback}
-            onChange={handleFeedbackChange}
-            placeholder="Write your feedback here. Be honest and thoughtful. The recipient won't see your exact words - they'll receive the key themes in a format they choose."
-            disabled={loading}
-          />
-
-          {/* Character Counter */}
-          <div className="char-counter">
-            <div className="char-counter-bar">
-              <div
-                className="char-counter-fill"
-                style={{ width: `${Math.min((charCount / FEEDBACK_MIN_LENGTH) * 100, 100)}%` }}
-              />
-            </div>
-            <span className={`char-counter-text ${charCount >= FEEDBACK_MIN_LENGTH ? 'complete' : ''}`}>
-              {charCount} / {FEEDBACK_MIN_LENGTH} minimum
-            </span>
+          {/* Writing Mode Toggle */}
+          <div className="mode-toggle">
+            <button
+              type="button"
+              className={`mode-btn ${writeMode === 'freeform' ? 'active' : ''}`}
+              onClick={() => setWriteMode('freeform')}
+              disabled={loading}
+            >
+              Write freely
+            </button>
+            <button
+              type="button"
+              className={`mode-btn ${writeMode === 'guided' ? 'active' : ''}`}
+              onClick={() => setWriteMode('guided')}
+              disabled={loading}
+            >
+              Guide me
+            </button>
           </div>
 
-          {/* SBI Indicator - shows after 50 chars */}
-          {charCount >= 50 && (
-            <div className="sbi-indicator">
-              <span className="sbi-label">SBI Elements:</span>
-              <div className="sbi-dots">
-                <span className={`sbi-dot ${sbiIndicators.situation ? 'active' : ''}`} title="Situation">S</span>
-                <span className={`sbi-dot ${sbiIndicators.behavior ? 'active' : ''}`} title="Behavior">B</span>
-                <span className={`sbi-dot ${sbiIndicators.impact ? 'active' : ''}`} title="Impact">I</span>
+          {writeMode === 'freeform' ? (
+            <>
+              <textarea
+                ref={textareaRef}
+                value={feedback}
+                onChange={handleFeedbackChange}
+                placeholder="Write your feedback here. Be honest and thoughtful. The recipient won't see your exact words - they'll receive the key themes in a format they choose."
+                disabled={loading}
+              />
+
+              {/* Character Counter */}
+              <div className="char-counter">
+                <div className="char-counter-bar">
+                  <div
+                    className="char-counter-fill"
+                    style={{ width: `${Math.min((charCount / FEEDBACK_MIN_LENGTH) * 100, 100)}%` }}
+                  />
+                </div>
+                <span className={`char-counter-text ${charCount >= FEEDBACK_MIN_LENGTH ? 'complete' : ''}`}>
+                  {charCount} / {FEEDBACK_MIN_LENGTH} minimum
+                </span>
               </div>
-              <span className="sbi-hint">
-                {!sbiIndicators.situation && !sbiIndicators.behavior && !sbiIndicators.impact
-                  ? 'Add context: when, what happened, impact'
-                  : !sbiIndicators.situation
-                  ? 'Add when/where this happened'
-                  : !sbiIndicators.behavior
-                  ? 'Describe specific actions'
-                  : !sbiIndicators.impact
-                  ? 'Share how this affected you'
-                  : 'Great coverage!'}
-              </span>
+
+              {/* SBI-R Indicator - shows after 50 chars */}
+              {charCount >= 50 && (
+                <div className="sbi-indicator">
+                  <span className="sbi-label">Feedback Elements:</span>
+                  <div className="sbi-dots">
+                    <span className={`sbi-dot ${sbiIndicators.situation ? 'active' : ''}`} title="Situation">S</span>
+                    <span className={`sbi-dot ${sbiIndicators.behavior ? 'active' : ''}`} title="Behavior">B</span>
+                    <span className={`sbi-dot ${sbiIndicators.impact ? 'active' : ''}`} title="Impact">I</span>
+                    <span className={`sbi-dot ${sbiIndicators.request ? 'active' : ''}`} title="Request">R</span>
+                  </div>
+                  <span className="sbi-hint">
+                    {!sbiIndicators.situation && !sbiIndicators.behavior && !sbiIndicators.impact
+                      ? 'Add context: when, what happened, impact'
+                      : !sbiIndicators.situation
+                      ? 'Add when/where this happened'
+                      : !sbiIndicators.behavior
+                      ? 'Describe specific actions'
+                      : !sbiIndicators.impact
+                      ? 'Share how this affected you'
+                      : !sbiIndicators.request
+                      ? 'Consider adding a request for change'
+                      : 'Great coverage!'}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="guided-form">
+              {/* Progress indicator */}
+              <div className="guided-progress">
+                {guidedSteps.map((step, index) => (
+                  <div
+                    key={step.key}
+                    className={`guided-step-dot ${index === guidedStep ? 'active' : ''} ${guidedAnswers[step.key].trim() ? 'completed' : ''}`}
+                    onClick={() => setGuidedStep(index)}
+                  >
+                    {index + 1}
+                  </div>
+                ))}
+              </div>
+
+              {/* Current step */}
+              <div className="guided-step">
+                <h3>{guidedSteps[guidedStep].title}</h3>
+                <p className="guided-prompt">{guidedSteps[guidedStep].prompt}</p>
+                <textarea
+                  value={guidedAnswers[guidedSteps[guidedStep].key]}
+                  onChange={(e) => handleGuidedAnswerChange(guidedSteps[guidedStep].key, e.target.value)}
+                  placeholder={guidedSteps[guidedStep].example}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="guided-nav">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={handleGuidedBack}
+                  disabled={guidedStep === 0 || loading}
+                >
+                  Back
+                </button>
+                {guidedStep < guidedSteps.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={handleGuidedNext}
+                    disabled={!guidedAnswers[guidedSteps[guidedStep].key].trim() || loading}
+                  >
+                    Next
+                  </button>
+                ) : null}
+              </div>
             </div>
           )}
 
           {error && <div className="error">{error}</div>}
 
-          <button type="submit" disabled={loading || !feedback.trim() || !senderName.trim() || !recipientName.trim() || !relationship.trim()}>
+          <button
+            type="submit"
+            disabled={
+              loading ||
+              !senderName.trim() ||
+              !recipientName.trim() ||
+              !relationship.trim() ||
+              (writeMode === 'freeform' ? !feedback.trim() : !isGuidedComplete())
+            }
+          >
             {loading ? <span className="loading">Processing</span> : 'Continue'}
           </button>
         </form>

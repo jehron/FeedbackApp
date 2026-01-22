@@ -24,7 +24,7 @@ An alternative writing mode that asks structured questions in sequence, producin
 
 ### How It Works
 
-Instead of a blank textarea, users answer three focused questions:
+Instead of a blank textarea, users answer four focused questions (SBI-R framework):
 
 1. **"What happened?"** (Situation)
    - Prompt: "Describe the specific context or event"
@@ -38,7 +38,11 @@ Instead of a blank textarea, users answer three focused questions:
    - Prompt: "What was the result or how did it make you feel?"
    - Example: "The team stopped contributing ideas, and I felt like my input wasn't valued..."
 
-Users can navigate back to edit previous answers before submitting.
+4. **"What would you like them to do differently?"** (Request - optional)
+   - Prompt: "Share a specific request for future behavior"
+   - Example: "In future standups, I'd appreciate if you could let me finish my thoughts before sharing yours"
+
+Users can navigate back to edit previous answers before submitting. The request step is optional but encouraged.
 
 ### Output
 

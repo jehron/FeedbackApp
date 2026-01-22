@@ -4,12 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import { getFeedbackMetadata, transformFeedback } from '../api';
 
 const FORMAT_SUGGESTIONS = [
-  'Kindly',
-  'Encouragingly',
-  'As bullet points',
-  'Straight to the point',
-  'As a pep talk',
-  'As a haiku'
+  'Just tell me straight',
+  'Make it gentle',
+  'Give me bullet points',
+  'What can I do about this?'
 ];
 
 function Receive() {
@@ -161,7 +159,7 @@ function Receive() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Request a format (e.g., 'as a poem', 'in Spanish')"
+            placeholder="Ask a question or request a different format..."
             disabled={sending}
           />
           <button type="submit" disabled={sending || !input.trim()}>
