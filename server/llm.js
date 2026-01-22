@@ -88,7 +88,8 @@ export async function analyzeFeedbackQuality(rawFeedback) {
       elements: {
         situation: { present: false, detail: 'Unable to analyze' },
         behavior: { present: false, detail: 'Unable to analyze' },
-        impact: { present: false, detail: 'Unable to analyze' }
+        impact: { present: false, detail: 'Unable to analyze' },
+        request: { present: false, detail: 'Unable to analyze' }
       },
       suggestions: ['Try adding more specific details about when and where this occurred.']
     };

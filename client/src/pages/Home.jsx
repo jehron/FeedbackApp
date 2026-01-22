@@ -444,7 +444,7 @@ function Home() {
                   <button className="secondary" onClick={handleImprove}>
                     Go Back & Improve
                   </button>
-                  <button onClick={proceedToSanitization}>
+                  <button onClick={() => proceedToSanitization()}>
                     Continue Anyway
                   </button>
                 </div>

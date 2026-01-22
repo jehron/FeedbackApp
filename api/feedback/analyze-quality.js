@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 
-const ANALYZE_QUALITY_SYSTEM_PROMPT = `You are a feedback quality analyzer using the SBI (Situation-Behavior-Impact) framework.
+const ANALYZE_QUALITY_SYSTEM_PROMPT = `You are a feedback quality analyzer using the SBI-R (Situation-Behavior-Impact-Request) framework.
 
 Analyze the feedback and return a JSON object with this exact structure:
 {
@@ -10,21 +10,26 @@ Analyze the feedback and return a JSON object with this exact structure:
   "elements": {
     "situation": { "present": <boolean>, "detail": "<brief explanation>" },
     "behavior": { "present": <boolean>, "detail": "<brief explanation>" },
-    "impact": { "present": <boolean>, "detail": "<brief explanation>" }
+    "impact": { "present": <boolean>, "detail": "<brief explanation>" },
+    "request": { "present": <boolean>, "detail": "<brief explanation>" }
   },
   "suggestions": ["<suggestion 1>", "<suggestion 2>"]
 }
 
-SBI Framework:
+SBI-R Framework:
 - SITUATION: When/where did this happen? Context like "In yesterday's meeting" or "During the project review"
 - BEHAVIOR: What specific, observable actions occurred? Not interpretations, but what someone actually did or said
 - IMPACT: What was the effect? How did it affect you, the team, or the outcome?
+- REQUEST: What specific change is being asked for? A clear ask for future behavior, like "In future standups, I'd appreciate if you could let me finish before responding"
 
 Scoring guidelines:
-- 1-3: Missing most SBI elements, vague or generic
-- 4-6: Has some elements but lacks specificity
-- 7-8: Good coverage of SBI with specific details
-- 9-10: Excellent, all elements present with clear, actionable detail
+- 1-3: Missing most elements, vague or generic
+- 4-5: Has situation and behavior but lacks impact or specificity
+- 6-7: Good coverage of SBI with specific details
+- 8-9: Excellent SBI coverage with clear, actionable detail
+- 10: All four elements (including request) present with specificity
+
+The request element is optional but elevates feedback from observation to actionable. If missing, suggest adding one.
 
 Provide 1-2 brief, actionable suggestions for improvement. Keep suggestions friendly and constructive.
 
@@ -70,7 +75,8 @@ export default async function handler(req, res) {
         elements: {
           situation: { present: false, detail: 'Unable to analyze' },
           behavior: { present: false, detail: 'Unable to analyze' },
-          impact: { present: false, detail: 'Unable to analyze' }
+          impact: { present: false, detail: 'Unable to analyze' },
+          request: { present: false, detail: 'Unable to analyze' }
         },
         suggestions: ['Try adding more specific details about when and where this occurred.']
       });
