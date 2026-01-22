@@ -80,19 +80,9 @@ export async function analyzeFeedbackQuality(rawFeedback) {
   const responseText = message.content[0].text;
 
   try {
-    // Try direct parse first
     return JSON.parse(responseText);
   } catch {
-    // Try to extract JSON from response (Claude sometimes adds extra text)
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch {
-        // Fall through to default
-      }
-    }
-    // If all parsing fails, return a default structure
+    // If parsing fails, return a default structure
     return {
       overallScore: 5,
       elements: {
