@@ -214,7 +214,18 @@ function Home() {
 
     try {
       const analysis = await analyzeFeedbackQuality(feedbackText);
-      setQualityAnalysis(analysis);
+
+      // Check if analysis failed (all elements show "Unable to analyze")
+      const allFailed = Object.values(analysis.elements || {}).every(
+        el => el.detail === 'Unable to analyze'
+      );
+
+      if (allFailed) {
+        // Skip showing unhelpful modal, proceed directly
+        proceedToSanitization(feedbackText);
+      } else {
+        setQualityAnalysis(analysis);
+      }
     } catch (err) {
       // On error, proceed to sanitization anyway
       console.error('Quality analysis failed:', err);

@@ -47,6 +47,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Feedback is required' });
     }
 
+    if (feedback.length < 150) {
+      return res.status(400).json({ error: 'Feedback must be at least 150 characters' });
+    }
+
     if (feedback.length > 10000) {
       return res.status(400).json({ error: 'Feedback is too long (max 10000 characters)' });
     }
@@ -66,10 +70,22 @@ export default async function handler(req, res) {
     const responseText = message.content[0].text;
 
     try {
+      // Try direct parse first
       const analysis = JSON.parse(responseText);
       res.json(analysis);
     } catch {
-      // If parsing fails, return a default structure
+      // Try to extract JSON from response (Claude sometimes adds extra text)
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const analysis = JSON.parse(jsonMatch[0]);
+          res.json(analysis);
+          return;
+        } catch {
+          // Fall through to default
+        }
+      }
+      // If all parsing fails, return a default structure
       res.json({
         overallScore: 5,
         elements: {
