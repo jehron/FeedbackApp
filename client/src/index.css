@@ -624,43 +624,41 @@ button.secondary:hover:not(:disabled) {
   margin-bottom: 1rem;
 }
 
-.guided-progress {
+.guided-tabs {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.guided-step-dot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.guided-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
   background: #e0e0e0;
-  color: #999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  font-weight: 600;
+  color: #666;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.guided-step-dot:hover {
+.guided-tab:hover {
   background: #d0d0d0;
 }
 
-.guided-step-dot.active {
+.guided-tab.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.guided-step-dot.completed {
+.guided-tab.completed {
   background: #28a745;
   color: white;
 }
 
-.guided-step-dot.completed.active {
+.guided-tab.completed.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 

@@ -99,24 +99,28 @@ function Home() {
   const guidedSteps = [
     {
       key: 'situation',
+      label: 'Situation',
       title: 'What happened?',
       prompt: 'Describe the specific context or event',
       example: 'e.g., "During last Tuesday\'s team standup..." or "In our 1:1 yesterday..."'
     },
     {
       key: 'behavior',
+      label: 'Behavior',
       title: 'What did they do?',
       prompt: 'What actions or words did you observe?',
       example: 'e.g., "You interrupted two people mid-sentence..." or "You took the time to explain..."'
     },
     {
       key: 'impact',
+      label: 'Impact',
       title: 'How did it affect things?',
       prompt: 'What was the result or how did it make you feel?',
       example: 'e.g., "This made me feel like my input wasn\'t valued..." or "The team felt more confident..."'
     },
     {
       key: 'request',
+      label: 'Request',
       title: 'What would you like them to do differently?',
       prompt: 'Share a specific request for future behavior (optional but helpful)',
       example: 'e.g., "In future standups, I\'d appreciate if you could let me finish my thoughts before sharing yours"',
@@ -376,15 +380,16 @@ function Home() {
           ) : (
             <div className="guided-form">
               {/* Progress indicator */}
-              <div className="guided-progress">
+              <div className="guided-tabs">
                 {guidedSteps.map((step, index) => (
-                  <div
+                  <button
                     key={step.key}
-                    className={`guided-step-dot ${index === guidedStep ? 'active' : ''} ${guidedAnswers[step.key].trim() ? 'completed' : ''}`}
+                    type="button"
+                    className={`guided-tab ${index === guidedStep ? 'active' : ''} ${guidedAnswers[step.key].trim() ? 'completed' : ''}`}
                     onClick={() => setGuidedStep(index)}
                   >
-                    {index + 1}
-                  </div>
+                    {step.label}{step.optional ? ' (opt.)' : ''}
+                  </button>
                 ))}
               </div>
 
