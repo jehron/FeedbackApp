@@ -810,3 +810,14 @@ button.secondary:hover:not(:disabled) {
   color: #667eea;
   font-style: italic;
 }
+
+/* Mobile layout adjustments */
+@media (max-width: 600px) {
+  .container {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .card {
+    border-radius: 20px;
+  }
+}
