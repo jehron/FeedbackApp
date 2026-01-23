@@ -117,26 +117,20 @@ function Receive() {
     <div className="container">
       <div className="card chat-container">
         <h1>{recipientName ? `Hi ${recipientName}!` : 'You Have Feedback'}</h1>
-        <p className="subtitle">
-          {senderName || 'Someone'} has feedback for you. How would you like to receive it?
-        </p>
-
-        {messages.length === 0 && (
-          <div className="format-suggestions">
-            {FORMAT_SUGGESTIONS.map((format) => (
-              <button
-                key={format}
-                className="format-chip"
-                onClick={() => handleSend(format)}
-                disabled={sending}
-              >
-                {format}
-              </button>
-            ))}
-          </div>
-        )}
 
         <div className="messages">
+          {messages.length === 0 && (
+            <div className="welcome-message">
+              <p>
+                <strong>{senderName || 'Someone'}</strong> shared some honest feedback with you.
+                Their exact words have been transformed to protect candor — you'll receive
+                the meaning, not the phrasing.
+              </p>
+              <p>
+                Choose how you'd like to hear it, and ask follow-up questions anytime.
+              </p>
+            </div>
+          )}
           {messages.map((msg, i) => (
             <div key={i} className={`message ${msg.role}`}>
               {msg.role === 'assistant' ? (
@@ -159,13 +153,28 @@ function Receive() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question or request a different format..."
+            placeholder="Ask anything or request a format..."
             disabled={sending}
           />
           <button type="submit" disabled={sending || !input.trim()}>
             Send
           </button>
         </form>
+
+        {messages.length === 0 && (
+          <div className="format-suggestions">
+            {FORMAT_SUGGESTIONS.map((format) => (
+              <button
+                key={format}
+                className="format-chip"
+                onClick={() => handleSend(format)}
+                disabled={sending}
+              >
+                {format}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

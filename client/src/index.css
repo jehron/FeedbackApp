@@ -289,11 +289,33 @@ button.secondary:hover:not(:disabled) {
   padding: 1rem 1.5rem;
 }
 
+/* Welcome Message (empty state) */
+.welcome-message {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.welcome-message p {
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0;
+}
+
+.welcome-message p:last-child {
+  margin-bottom: 0;
+  color: #667eea;
+  font-size: 0.95rem;
+}
+
 .format-suggestions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1rem 0;
+  margin-top: 0.75rem;
+  justify-content: center;
 }
 
 .format-chip {
@@ -305,6 +327,8 @@ button.secondary:hover:not(:disabled) {
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
+  width: auto;
+  margin-top: 0;
 }
 
 .format-chip:hover {
