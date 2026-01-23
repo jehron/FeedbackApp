@@ -55,6 +55,9 @@ function Home() {
   // Writing mode toggle
   const [writeMode, setWriteMode] = useState('freeform'); // 'freeform' | 'guided'
 
+  // How it works collapsible section
+  const [howItWorksExpanded, setHowItWorksExpanded] = useState(false);
+
   // Guided mode state
   const [guidedStep, setGuidedStep] = useState(0);
   const [guidedAnswers, setGuidedAnswers] = useState({
@@ -235,6 +238,41 @@ function Home() {
         <p className="subtitle">
           Write your feedback below. The recipient will receive it transformed into their preferred format.
         </p>
+
+        <div className="how-it-works">
+          <button
+            type="button"
+            className="how-it-works-toggle"
+            onClick={() => setHowItWorksExpanded(!howItWorksExpanded)}
+            aria-expanded={howItWorksExpanded}
+          >
+            <span>How does this work?</span>
+            <svg
+              className={`how-it-works-chevron ${howItWorksExpanded ? 'expanded' : ''}`}
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div className={`how-it-works-content ${howItWorksExpanded ? 'expanded' : ''}`}>
+            <p className="how-it-works-heading">Honest feedback shouldn't feel risky.</p>
+            <p>
+              When you write here, your exact words stay private. Our AI reads your feedback
+              and distills it into key themes — the <em>what</em> without the <em>how you said it</em>.
+            </p>
+            <p>
+              Your recipient never sees your original text. They only see the themes, delivered
+              in whatever format feels right to them — whether that's gentle, direct, or even a haiku.
+            </p>
+            <p>
+              This way, you can be truly honest, and they can truly hear it.
+            </p>
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="name-fields">

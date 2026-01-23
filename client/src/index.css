@@ -693,3 +693,78 @@ button.secondary:hover:not(:disabled) {
   flex: 1;
   margin-top: 0;
 }
+
+/* How It Works Collapsible */
+.how-it-works {
+  margin-bottom: 1.5rem;
+}
+
+.how-it-works-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
+  padding: 0.5rem 1rem;
+  margin: 0 auto;
+  background: transparent;
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.how-it-works-toggle:hover:not(:disabled) {
+  color: #764ba2;
+  transform: none;
+  box-shadow: none;
+}
+
+.how-it-works-chevron {
+  transition: transform 0.3s ease;
+}
+
+.how-it-works-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.how-it-works-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-top: 0;
+}
+
+.how-it-works-content.expanded {
+  max-height: 500px;
+  opacity: 1;
+  padding: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.how-it-works-heading {
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.75rem;
+}
+
+.how-it-works-content p {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.how-it-works-content p:last-child {
+  margin-bottom: 0;
+}
+
+.how-it-works-content em {
+  color: #667eea;
+  font-style: italic;
+}
