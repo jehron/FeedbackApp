@@ -240,7 +240,7 @@ function Home() {
       <div className="card">
         <h1>Share Feedback</h1>
         <p className="subtitle">
-          Write your feedback below. The recipient will receive it transformed into their preferred format.
+          Write your feedback below and get a shareable link. The recipient will see it transformed into their preferred format.
         </p>
 
         <div className="how-it-works">
