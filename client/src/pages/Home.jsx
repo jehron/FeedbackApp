@@ -380,16 +380,18 @@ function Home() {
           ) : (
             <div className="guided-form">
               {/* Progress indicator */}
-              <div className="guided-tabs">
+              <div className="guided-progress">
                 {guidedSteps.map((step, index) => (
-                  <button
+                  <div
                     key={step.key}
-                    type="button"
-                    className={`guided-tab ${index === guidedStep ? 'active' : ''} ${guidedAnswers[step.key].trim() ? 'completed' : ''}`}
+                    className={`guided-step-indicator ${index === guidedStep ? 'active' : ''} ${guidedAnswers[step.key].trim() ? 'completed' : ''}`}
                     onClick={() => setGuidedStep(index)}
                   >
-                    {step.label}{step.optional ? ' (opt.)' : ''}
-                  </button>
+                    <div className="guided-step-dot">{index + 1}</div>
+                    <span className="guided-step-label">
+                      {step.label}{step.optional ? ' (opt.)' : ''}
+                    </span>
+                  </div>
                 ))}
               </div>
 

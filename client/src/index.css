@@ -624,42 +624,62 @@ button.secondary:hover:not(:disabled) {
   margin-bottom: 1rem;
 }
 
-.guided-tabs {
+.guided-progress {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
-  flex-wrap: wrap;
 }
 
-.guided-tab {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  background: #e0e0e0;
-  color: #666;
-  border: none;
-  font-size: 0.85rem;
-  font-weight: 500;
+.guided-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   cursor: pointer;
+}
+
+.guided-step-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
   transition: all 0.2s;
 }
 
-.guided-tab:hover {
+.guided-step-indicator:hover .guided-step-dot {
   background: #d0d0d0;
 }
 
-.guided-tab.active {
+.guided-step-indicator.active .guided-step-dot {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.guided-tab.completed {
+.guided-step-indicator.completed .guided-step-dot {
   background: #28a745;
   color: white;
 }
 
-.guided-tab.completed.active {
+.guided-step-indicator.completed.active .guided-step-dot {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.guided-step-label {
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  color: #666;
+  text-align: center;
+}
+
+.guided-step-indicator.active .guided-step-label {
+  color: #667eea;
+  font-weight: 500;
 }
 
 .guided-step {
