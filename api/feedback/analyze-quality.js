@@ -1,59 +1,54 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { logError } from '../_logger.js';
+import { rateLimit } from '../_ratelimit.js';
+import {
+  LLM_MODEL,
+  ANALYZE_QUALITY_MAX_TOKENS,
+  FEEDBACK_MAX_LENGTH,
+  FEEDBACK_MIN_LENGTH,
+  ANALYZE_QUALITY_SYSTEM_PROMPT
+} from '../_constants.js';
 
 const anthropic = new Anthropic();
-
-const ANALYZE_QUALITY_SYSTEM_PROMPT = `You are a feedback quality analyzer using the SBI-R (Situation-Behavior-Impact-Request) framework.
-
-Analyze the feedback and return a JSON object with this exact structure:
-{
-  "overallScore": <number 1-10>,
-  "elements": {
-    "situation": { "present": <boolean>, "detail": "<brief explanation>" },
-    "behavior": { "present": <boolean>, "detail": "<brief explanation>" },
-    "impact": { "present": <boolean>, "detail": "<brief explanation>" },
-    "request": { "present": <boolean>, "detail": "<brief explanation>" }
-  },
-  "suggestions": ["<suggestion 1>", "<suggestion 2>"]
-}
-
-SBI-R Framework:
-- SITUATION: When/where did this happen? Context like "In yesterday's meeting" or "During the project review"
-- BEHAVIOR: What specific, observable actions occurred? Not interpretations, but what someone actually did or said
-- IMPACT: What was the effect? How did it affect you, the team, or the outcome?
-- REQUEST: What specific change is being asked for? A clear ask for future behavior, like "In future standups, I'd appreciate if you could let me finish before responding"
-
-Scoring guidelines:
-- 1-3: Missing most elements, vague or generic
-- 4-5: Has situation and behavior but lacks impact or specificity
-- 6-7: Good coverage of SBI with specific details
-- 8-9: Excellent SBI coverage with clear, actionable detail
-- 10: All four elements (including request) present with specificity
-
-The request element is optional but elevates feedback from observation to actionable. If missing, suggest adding one.
-
-Provide 1-2 brief, actionable suggestions for improvement. Keep suggestions friendly and constructive.
-
-Output ONLY the JSON object, no other text.`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { feedback } = req.body;
+  const { allowed, remaining, retryAfter } = rateLimit(req, 'analyze');
+  res.setHeader('X-RateLimit-Remaining', remaining);
+  if (!allowed) {
+    res.setHeader('Retry-After', retryAfter);
+    return res.status(429).json({ error: 'Too many requests. Please slow down.', retryAfter });
+  }
 
+  const feedback = req.body?.feedback;
+  console.log('═══ ANALYZE QUALITY ═══');
+  console.log('Input length:', feedback?.length || 0, 'chars');
+
+  try {
     if (!feedback || typeof feedback !== 'string' || feedback.trim().length === 0) {
+      console.log('Result: REJECTED - empty input');
+      console.log('═══════════════════════');
       return res.status(400).json({ error: 'Feedback is required' });
     }
 
-    if (feedback.length > 10000) {
-      return res.status(400).json({ error: 'Feedback is too long (max 10000 characters)' });
+    if (feedback.length < FEEDBACK_MIN_LENGTH) {
+      console.log('Result: REJECTED - too short');
+      console.log('═══════════════════════');
+      return res.status(400).json({ error: `Feedback must be at least ${FEEDBACK_MIN_LENGTH} characters` });
+    }
+
+    if (feedback.length > FEEDBACK_MAX_LENGTH) {
+      console.log('Result: REJECTED - too long');
+      console.log('═══════════════════════');
+      return res.status(400).json({ error: `Feedback is too long (max ${FEEDBACK_MAX_LENGTH} characters)` });
     }
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 512,
+      model: LLM_MODEL,
+      max_tokens: ANALYZE_QUALITY_MAX_TOKENS,
       system: ANALYZE_QUALITY_SYSTEM_PROMPT,
       messages: [
         {
@@ -63,13 +58,23 @@ export default async function handler(req, res) {
       ]
     });
 
-    const responseText = message.content[0].text;
+    let responseText = message.content[0].text;
+    console.log('Claude response:');
+    console.log(responseText);
+
+    // Strip markdown code blocks if present
+    responseText = responseText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
     try {
       const analysis = JSON.parse(responseText);
+      console.log('Parse: SUCCESS');
+      console.log('═══════════════════════');
       res.json(analysis);
-    } catch {
-      // If parsing fails, return a default structure
+    } catch (parseError) {
+      console.error('Parse: FAILED -', parseError.message);
+      console.error('═══════════════════════');
+
+      // Return a default structure
       res.json({
         overallScore: 5,
         elements: {
@@ -82,10 +87,8 @@ export default async function handler(req, res) {
       });
     }
   } catch (error) {
-    console.error('Quality analysis error:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack
+    logError('/api/feedback/analyze-quality', error, {
+      'Input length': `${feedback?.length || 0} chars`
     });
     res.status(500).json({ error: error.message || 'Failed to analyze feedback quality' });
   }

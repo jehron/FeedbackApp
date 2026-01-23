@@ -8,16 +8,6 @@ export const ANALYZE_QUALITY_MAX_TOKENS = 512;
 export const FEEDBACK_MAX_LENGTH = 10000;
 export const FEEDBACK_MIN_LENGTH = 150;
 
-// Rate limiting
-export const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-export const SANITIZE_RATE_LIMIT_MAX = 20;
-export const TRANSFORM_RATE_LIMIT_MAX = 30;
-export const ANALYZE_QUALITY_RATE_LIMIT_MAX = 10;
-
-// Conversation management
-export const CONVERSATION_TTL_MS = 60 * 60 * 1000; // 1 hour
-export const MAX_CONVERSATIONS = 1000;
-
 // ID generation
 export const FEEDBACK_ID_LENGTH = 10;
 export const CONVERSATION_ID_LENGTH = 6;

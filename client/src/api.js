@@ -1,5 +1,14 @@
 const API_BASE = '/api';
 
+async function parseErrorResponse(response, fallbackMessage) {
+  try {
+    const error = await response.json();
+    return error.error || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+}
+
 export async function sanitizeFeedback(feedback) {
   const response = await fetch(`${API_BASE}/feedback/sanitize`, {
     method: 'POST',
@@ -8,8 +17,7 @@ export async function sanitizeFeedback(feedback) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to sanitize feedback');
+    throw new Error(await parseErrorResponse(response, 'Failed to sanitize feedback'));
   }
 
   return response.json();
@@ -23,8 +31,7 @@ export async function saveFeedback(rawFeedback, sanitizedFeedback, senderName, r
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to save feedback');
+    throw new Error(await parseErrorResponse(response, 'Failed to save feedback'));
   }
 
   return response.json();
@@ -37,8 +44,7 @@ export async function getFeedbackMetadata(id) {
     if (response.status === 404) {
       return null;
     }
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to get feedback');
+    throw new Error(await parseErrorResponse(response, 'Failed to get feedback'));
   }
 
   return response.json();
@@ -52,8 +58,7 @@ export async function transformFeedback(id, format, conversationId = null) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to transform feedback');
+    throw new Error(await parseErrorResponse(response, 'Failed to transform feedback'));
   }
 
   return response.json();
@@ -67,8 +72,7 @@ export async function analyzeFeedbackQuality(feedback) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to analyze feedback quality');
+    throw new Error(await parseErrorResponse(response, 'Failed to analyze feedback quality'));
   }
 
   return response.json();

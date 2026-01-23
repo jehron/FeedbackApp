@@ -147,7 +147,11 @@ function Home() {
   };
 
   const isGuidedComplete = () => {
-    return guidedAnswers.situation.trim() && guidedAnswers.behavior.trim() && guidedAnswers.impact.trim();
+    const hasRequiredFields = guidedAnswers.situation.trim() && guidedAnswers.behavior.trim() && guidedAnswers.impact.trim();
+    if (!hasRequiredFields) return false;
+    // Ensure combined length meets minimum
+    const combinedLength = combineGuidedFeedback().length;
+    return combinedLength >= FEEDBACK_MIN_LENGTH;
   };
 
   const handleFeedbackChange = (e) => {
@@ -356,6 +360,20 @@ function Home() {
                   placeholder={guidedSteps[guidedStep].example}
                   disabled={loading}
                 />
+                {/* Show combined length on last step */}
+                {guidedStep === guidedSteps.length - 1 && (
+                  <div className="char-counter">
+                    <div className="char-counter-bar">
+                      <div
+                        className="char-counter-fill"
+                        style={{ width: `${Math.min((combineGuidedFeedback().length / FEEDBACK_MIN_LENGTH) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <span className={`char-counter-text ${combineGuidedFeedback().length >= FEEDBACK_MIN_LENGTH ? 'complete' : ''}`}>
+                      {combineGuidedFeedback().length} / {FEEDBACK_MIN_LENGTH} minimum
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Navigation buttons */}

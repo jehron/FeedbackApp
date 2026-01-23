@@ -1,37 +1,47 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { logError } from '../_logger.js';
+import { rateLimit } from '../_ratelimit.js';
+import {
+  LLM_MODEL,
+  SANITIZE_MAX_TOKENS,
+  FEEDBACK_MAX_LENGTH,
+  SANITIZE_SYSTEM_PROMPT
+} from '../_constants.js';
 
 const anthropic = new Anthropic();
-
-const SANITIZE_SYSTEM_PROMPT = `You are a feedback sanitizer. Your job is to extract the core themes and key points from feedback while removing any identifying language patterns.
-
-Your output should:
-- Preserve the emotional tone and main message
-- Remove specific phrasing, quotes, or identifiable language patterns
-- Output a neutral summary that captures WHAT is being communicated, not HOW it was originally written
-- Be written in third person (e.g., "The feedback expresses..." or "Key themes include...")
-- Not include any meta-commentary about the sanitization process
-
-Output ONLY the sanitized feedback summary, nothing else.`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { feedback } = req.body;
+  const { allowed, remaining, retryAfter } = rateLimit(req, 'sanitize');
+  res.setHeader('X-RateLimit-Remaining', remaining);
+  if (!allowed) {
+    res.setHeader('Retry-After', retryAfter);
+    return res.status(429).json({ error: 'Too many requests. Please slow down.', retryAfter });
+  }
 
+  const feedback = req.body?.feedback;
+  console.log('═══ SANITIZE ═══');
+  console.log('Input length:', feedback?.length || 0, 'chars');
+
+  try {
     if (!feedback || typeof feedback !== 'string' || feedback.trim().length === 0) {
+      console.log('Result: REJECTED - empty input');
+      console.log('═════════════════');
       return res.status(400).json({ error: 'Feedback is required' });
     }
 
-    if (feedback.length > 10000) {
-      return res.status(400).json({ error: 'Feedback is too long (max 10000 characters)' });
+    if (feedback.length > FEEDBACK_MAX_LENGTH) {
+      console.log('Result: REJECTED - too long');
+      console.log('═════════════════');
+      return res.status(400).json({ error: `Feedback is too long (max ${FEEDBACK_MAX_LENGTH} characters)` });
     }
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      model: LLM_MODEL,
+      max_tokens: SANITIZE_MAX_TOKENS,
       system: SANITIZE_SYSTEM_PROMPT,
       messages: [
         {
@@ -41,12 +51,12 @@ export default async function handler(req, res) {
       ]
     });
 
+    console.log('Result: SUCCESS');
+    console.log('═════════════════');
     res.json({ sanitized: message.content[0].text });
   } catch (error) {
-    console.error('Sanitization error:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack
+    logError('/api/feedback/sanitize', error, {
+      'Input length': `${feedback?.length || 0} chars`
     });
     res.status(500).json({ error: error.message || 'Failed to sanitize feedback' });
   }
